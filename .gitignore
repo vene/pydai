@@ -1,0 +1,7 @@
+*.swp
+*.pyc
+*.so
+*.c
+pydai/sprinkler.cpp
+build/
+*.egg-info
