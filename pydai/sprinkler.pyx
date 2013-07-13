@@ -1,5 +1,3 @@
-from cython.operators import dereference as deref
-
 from libcpp.vector cimport vector
 from libcpp.map cimport map
 from libcpp cimport bool
@@ -11,11 +9,11 @@ cdef class Var:
     cdef classes.Var *thisptr
     cdef bool allocate
 
-    def __cinit__(self, int label=None, int state=None, allocate=True):
+    def __cinit__(self, label=None, state=None, allocate=True):
         self.allocate = allocate
         if allocate:
             if label is not None and state is not None:
-                self.thisptr = new classes.Var(label, state)
+                self.thisptr = new classes.Var(<int> label, <int> state)
             else:
                 self.thisptr = new classes.Var()
 
@@ -42,7 +40,7 @@ cdef class VarSet:
             del self.thisptr
 
     def insert(self, Var v):
-        (<classes.VarSet> self.thisptr).insert(<classes.Var> v.thisptr)
+        self.thisptr[0].insert(v.thisptr[0])
 
 
 cdef class Factor:
@@ -53,9 +51,9 @@ cdef class Factor:
         self.allocate = allocate
         if allocate:
             if v is not None:
-                self.thisptr = new classes.Factor(<classes.Var> v.thisptr)
+                self.thisptr = new classes.Factor(v.thisptr[0])
             elif vs is not None:
-                self.thisptr = new classes.Factor(<classes.VarSet> vs.thisptr)
+                self.thisptr = new classes.Factor(vs.thisptr[0])
             else:
                 self.thisptr = new classes.Factor()
 
@@ -64,34 +62,35 @@ cdef class Factor:
             del self.thisptr
 
     def __getitem__(self, int i):
-        return (<classes.Factor> self.thisptr).get(i)
+        return self.thisptr[0].get(i)
 
     def __setitem__(self, int i, double val):
-        (<classes.Factor> self.thisptr).set(i, val)
+        self.thisptr[0].set(i, val)
 
-    def __mul__(x, y):
+    def __mul__(Factor x, Factor y):
         ret = Factor(allocate=False)
-        cdef classes.Factor cret = (<classes.Factor> x.thisptr).multiply(
-            <classes.Factor> y.thisptr)
-        ret.thisptr = <classes.Factor*> cret
+        cdef classes.Factor cret = x.thisptr[0].multiply(y.thisptr[0])
+        ret.thisptr = & cret
         return ret
 
     def marginal(self, VarSet vs, bool normed=True):
         ret = Factor(allocate=False)
-        cdef classes.Factor cret = self.thisptr.marginal(
-            <classes.VarSet> vs.thisptr, normed)
+        cdef classes.Factor cret = self.thisptr[0].marginal(
+            vs.thisptr[0], normed)
         ret.thisptr = &cret
         return ret
 
 cdef class FactorGraph:
     cdef classes.FactorGraph *thisptr
     cdef bool allocate
-    def __cinit__(self, list factors, allocate=True):
+    def __cinit__(self, list factors, bool allocate=True):
         self.allocate = allocate
+        cdef vector[classes.Factor] cfactors
         if allocate:
             if factors is not None:
-                cfactors = [(<object> fact.thisptr) for fact in factors]
-                self.thisptr = new classes.FactorGraph(<vector[classes.Factor]> cfactors)
+                for fact in factors:
+                    cfactors.push_back((<Factor> fact).thisptr[0])
+                self.thisptr = new classes.FactorGraph(cfactors)
             else:
                 self.thisptr = new classes.FactorGraph()
 
@@ -107,7 +106,8 @@ cdef class FactorGraph:
 
     def __getitem__(self, int i):
         ret = Factor(allocate=False)
-        ret.thisptr = &(self.thisptr.factor(i))
+        cdef classes.Factor cret = self.thisptr[0].factor(i)
+        ret.thisptr = &cret
         return ret
 
 def test():
