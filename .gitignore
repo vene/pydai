@@ -2,6 +2,7 @@
 *.pyc
 *.so
 *.c
-pydai/sprinkler.cpp
+pydai/classes.cpp
+pydai/base.cpp
 build/
 *.egg-info

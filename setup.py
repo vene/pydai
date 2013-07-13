@@ -75,8 +75,8 @@ libdai = ('dai', {
 setup(name='pydai',
       libraries=[libdai],
       cmdclass={'build_clib': build_libdai, 'build_ext': build_ext},
-      ext_modules=[Extension("pydai.sprinkler",
-                             ["pydai/sprinkler.pyx"],
+      ext_modules=[Extension("pydai.base",
+                             ["pydai/base.pyx"],
                              include_dirs=['pydai/src/libdai/include/'],
                              libraries=['gmp', 'gmpxx'],
                              language="c++")
