@@ -40,7 +40,7 @@ cdef class VarSet:
             del self.thisptr
 
     def insert(self, Var v):
-        self.thisptr[0].insert(v.thisptr[0])
+        self.thisptr.insert(v.thisptr[0])
 
 
 cdef class Factor:
@@ -62,20 +62,20 @@ cdef class Factor:
             del self.thisptr
 
     def __getitem__(self, int i):
-        return self.thisptr[0].get(i)
+        return self.thisptr.get(i)
 
     def __setitem__(self, int i, double val):
-        self.thisptr[0].set(i, val)
+        self.thisptr.set(i, val)
 
     def __mul__(Factor x, Factor y):
         ret = Factor(allocate=False)
-        cdef classes.Factor cret = x.thisptr[0].multiply(y.thisptr[0])
+        cdef classes.Factor cret = x.thisptr.multiply(y.thisptr[0])
         ret.thisptr = & cret
         return ret
 
     def marginal(self, VarSet vs, bool normed=True):
         ret = Factor(allocate=False)
-        cdef classes.Factor cret = self.thisptr[0].marginal(
+        cdef classes.Factor cret = self.thisptr.marginal(
             vs.thisptr[0], normed)
         ret.thisptr = &cret
         return ret
@@ -106,6 +106,6 @@ cdef class FactorGraph:
 
     def __getitem__(self, int i):
         ret = Factor(allocate=False)
-        cdef classes.Factor cret = self.thisptr[0].factor(i)
+        cdef classes.Factor cret = self.thisptr.factor(i)
         ret.thisptr = &cret
         return ret
